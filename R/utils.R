@@ -8,7 +8,7 @@
 #'
 #' @import httr
 #'
-.wt_auth <- function() {
+.wt_auth <- function(wt_user_name) {
 
   # ABMI Auth0 client ID
   cid <- rawToChar(
@@ -25,8 +25,8 @@
       audience = "http://www.wildtrax.ca",
       grant_type = "password",
       client_id = cid,
-      username = Sys.getenv("WT_USERNAME"),
-      password = Sys.getenv("WT_PASSWORD")
+      username = wt_user_name,#Sys.getenv("WT_USERNAME"),
+      password = askpass::askpass()
     )
   )
 

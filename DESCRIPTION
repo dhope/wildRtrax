@@ -47,7 +47,8 @@ Imports:
     progressr,
     rmarkdown,
     markdown,
-    QPAD
+    QPAD,
+    askpass
 Suggests: 
     testthat (>= 3.0.0),
     usethis,

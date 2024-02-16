@@ -14,13 +14,13 @@
 #'
 #'
 
-wt_auth <- function(force = FALSE) {
+wt_auth <- function(wt_user_name, force = FALSE) {
 
   if (!exists("._wt_auth_env_"))
     stop("Cannot find the correct environment.", call. = TRUE)
 
-  if (force || .wt_auth_expired())
-    .wt_auth()
+  if (isTRUE(force) || .wt_auth_expired())
+    .wt_auth(wt_user_name)
 
   invisible(NULL)
 
@@ -129,7 +129,9 @@ wt_get_download_summary <- function(sensor_id) {
 #' @return If multiple report types are requested, a list object is returned; if only one, a dataframe.
 #'
 
-wt_download_report <- function(project_id, sensor_id, reports, weather_cols = TRUE) {
+wt_download_report <- function(project_id, sensor_id, reports, weather_cols = TRUE,...) {
+
+  arguments <- list(...)
 
   # Check if authentication has expired:
   if (.wt_auth_expired())
@@ -218,6 +220,8 @@ wt_download_report <- function(project_id, sensor_id, reports, weather_cols = TR
   tmp <- tempfile(fileext = ".zip")
   # tmp directory
   td <- tempdir()
+  # save CSVs
+  if("csv_directory" %in% names(arguments)) td <- arguments$csv_directory
 
   # Create POST request
   r <- httr::GET(
@@ -242,9 +246,7 @@ wt_download_report <- function(project_id, sensor_id, reports, weather_cols = TR
   # Unzip
   unzip(tmp, exdir = td)
 
-  # Remove abstract file
-  abstract <- list.files(td, pattern = "*_abstract.csv", full.names = TRUE, recursive = TRUE)
-  file.remove(abstract)
+
 
   # List data files, read into R as a list
   files <- gsub(".csv", "", list.files(td, pattern = ".csv", recursive = TRUE))
@@ -270,7 +272,15 @@ wt_download_report <- function(project_id, sensor_id, reports, weather_cols = TR
   }
 
   # Delete csv files
-  file.remove(files.full)
+  # Delete csv files
+  if(!"keep_csvs" %in% names(arguments))  {file.remove(files.full)
+    # Remove abstract file
+    abstract <- list.files(td, pattern = "*_abstract.csv", full.names = TRUE, recursive = TRUE)
+    file.remove(abstract)}
+  if("keep_csvs" %in% names(arguments)){
+    if(!isTRUE(arguments$keep_csvs))  file.remove(files.full)
+  }
+  # file.remove(files.full)
   # Delete tmp
   file.remove(tmp)
 
